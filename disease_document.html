@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patient Disease Document</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #f5f0e8;
+      --paper:    #fdfaf4;
+      --ink:      #1a1610;
+      --muted:    #7a6f60;
+      --accent:   #b34a2f;
+      --border:   #d6cfc0;
+      --shadow:   rgba(26,22,16,0.10);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top bar ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      background: var(--paper);
+      border-bottom: 1.5px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .logo span { color: var(--accent); }
+
+    .patient-chip {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Add document button (top-left fab) ── */
+    .add-btn {
+      position: fixed;
+      top: 72px;
+      left: 28px;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow: 0 4px 18px var(--shadow);
+      transition: background 0.2s, transform 0.15s;
+    }
+    .add-btn:hover { background: var(--accent); transform: translateY(-1px); }
+    .add-btn svg { flex-shrink: 0; }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 32px 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 0;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    /* ── Image A — spans top, left half ── */
+    .block-image-a {
+      grid-column: 1;
+      grid-row: 1;
+      padding: 0 24px 0 0;
+      border-right: 1.5px solid var(--border);
+      padding-bottom: 36px;
+    }
+
+    /* ── Caption A ── */
+    .block-caption-a {
+      grid-column: 1;
+      grid-row: 2;
+      padding: 0 24px 48px 0;
+      border-right: 1.5px solid var(--border);
+    }
+
+    /* ── Image B — right side (rows 1+2) ── */
+    .block-image-b {
+      grid-column: 2;
+      grid-row: 1;
+      padding: 0 0 36px 24px;
+    }
+
+    /* ── Caption B ── */
+    .block-caption-b {
+      grid-column: 2;
+      grid-row: 2;
+      padding: 0 0 48px 24px;
+    }
+
+    /* ── Image frame ── */
+    .img-frame {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .img-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    /* placeholder when no real image */
+    .img-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-align: center;
+      padding: 24px;
+      width: 100%;
+      height: 100%;
+    }
+    .img-placeholder svg { opacity: 0.4; }
+
+    /* ── Caption / description text ── */
+    .caption-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .caption-body {
+      font-size: 0.78rem;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+    .caption-body p + p { margin-top: 10px; }
+
+    .meta-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .meta-item {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .meta-item strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    /* ── Divider between row pairs ── */
+    .block-divider {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      height: 1.5px;
+      background: var(--border);
+      margin-bottom: 40px;
+    }
+
+    /* ── Tag pills ── */
+    .tag {
+      display: inline-block;
+      font-size: 0.62rem;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 3px 8px;
+      margin: 6px 4px 0 0;
+      color: var(--muted);
+    }
+    .tag.accent { border-color: var(--accent); color: var(--accent); }
+
+    @media (max-width: 700px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 32px 20px 48px;
+      }
+      .block-image-a,
+      .block-caption-a { border-right: none; padding-right: 0; }
+      .block-image-b,
+      .block-caption-b { padding-left: 0; }
+      .block-image-a  { grid-row: 1; }
+      .block-caption-a{ grid-row: 2; }
+      .block-image-b  { grid-row: 3; }
+      .block-caption-b{ grid-row: 4; }
+      .add-btn {
+  position: fixed;
+  top: 220px;
+  left: 28px;
+  width: auto;
+  z-index: 50;
+}
+    }
+  </style>
+</head>
+<body>
+
+  <header style="flex-direction:column; align-items:flex-start; gap:12px; padding:0 0 24px 0; z-index:300;">
+    <div style="padding: 0 32px; display:flex; flex-direction:column; gap:8px;">
+      <div class="logo">互联病例记录手册<span></span></div>
+      <span class="patient-chip" style="align-self:flex-start;"> · 用户名</span>
+    </div>
+  </header>
+
+
+   <div style="padding: 0 32px; margin-bottom: 16px;">
+    <div class="img-frame" style="width:100%; height: 150px; background:#f5f0e8; border:none;">
+      <img src="public/karrigan-karrigancs.gif" alt="Image A" style="object-fit: fill;"/>
+    </div>
+  </div>
+  <!-- ── Add Document Button (top-left, not wired yet) ── -->
+<button class="add-btn" style="position:absolute; top:220px; left:28px; width:auto; z-index:50;" title="Add document (coming soon)">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    添加病例
+  </button>
+
+  <div style="position:absolute; top:270px; left:28px; width:180px; background:#fdfaf4; border:1.5px solid #d6cfc0; border-radius:6px; padding:12px; z-index:50;">
+    <p style="font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; color:#7a6f60; margin-bottom:8px;">病例文件</p>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <!-- documents will go here -->
+      <p style="font-family:'DM Mono',monospace; font-size:0.7rem; color:#d6cfc0; font-style:italic;">暂无文件</p>
+    </div>
+  </div>
+  <!-- ── Main content ── -->
+   <main>
+
+    <!-- Image B -->
+    <div class="block-image-b">
+      <p class="section-label"></p>
+      <div class="img-frame">
+        <img src="public/sus.png" alt="MRI scan B" />
+      </div>
+    </div>
+
+    <!-- Caption B -->
+    <div class="block-caption-b">
+      <h2 class="caption-title">
+        <span
+          class="caption-trigger"
+          onclick="showPopup()"
+          title="Click to reveal">
+          点击偷看其他人病例
+          <span class="caption-trigger-hint"></span>
+        </span>
+      </h2>
+      <div class="caption-body">
+    </div>
+
+  </main>
+
+ <!-- ── Popup overlay ── -->
+  <div id="popup-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999; align-items:center; justify-content:center;">
+    <div id="popup-box" style="display:flex; flex-direction:column; align-items:center; gap:12px; width:50vw; max-width:500px;">
+      <img id="popup-img" src="public/foundyou.gif" alt="Revealed image" style="width:100%; border-radius:6px;"/>
+      <span id="popup-label" style="color:#fff; font-size:1.5rem;">泄露病人病例是违法的！</span>
+        <div id="popup-timer-fill" style="height:100%; background:#b34a2f; transform-origin:left;"></div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="popup-sound" src="public/susound.mp3" preload="auto"></audio>
+
+  <script>
+    let popupTimeout = null;
+
+    function showPopup() {
+      const overlay = document.getElementById('popup-overlay');
+      const fill    = document.getElementById('popup-timer-fill');
+      const sound   = document.getElementById('popup-sound');
+
+      // Reset and restart the drain animation
+      fill.style.transition = 'none';
+      fill.style.transform = 'scaleX(1)';
+      fill.offsetHeight; // force reflow
+      fill.style.transition = 'transform 5s linear';
+      fill.style.transform = 'scaleX(0)';
+
+      // Show overlay as flex so it centers
+      overlay.style.display = 'flex';
+
+      sound.currentTime = 0;
+      sound.play();
+
+      clearTimeout(popupTimeout);
+      popupTimeout = setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 3000);
+    }
+
+    document.getElementById('popup-overlay').addEventListener('click', function(e) {
+      if (e.target === this) {
+        clearTimeout(popupTimeout);
+        this.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
